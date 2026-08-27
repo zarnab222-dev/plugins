@@ -50,7 +50,7 @@ Response (values are **USD dollars and cents**; `20.0` = $20.00):
 ```
 
 - **`data.total_balance`** → `{credits}`. Use this for budgets and the ~$0 check. **Always tell the user how many credits they have** (`You have about $X.XX in credits.`), including $0.00. That is remaining balance, not the welcome gift.
-- **`data.free_balance`** → if `> 0` on first connect, they got the auto starter grant. Do **not** say “you received $X”. Prepaid users can have a large total that is not the gift.
+- **`data.free_balance`** → leftover starter grant, if any. Do **not** say “you received $X”. Do **not** congrats just because this is `> 0` (returning sessions still have leftover free grants). Prepaid can be negative, so `free_balance > 0` and `{credits}` ~$0 can both be true — `{credits}` ~$0 wins.
 - Ignore `free_grants` and `prepaid_balance` for user-facing copy. Do not choose what to spend.
 
 Fetch it:
@@ -63,7 +63,7 @@ Do not fetch on every message.
 
 ### If they ask how much they received / starter credits
 
-Do **not** dump `total_balance` or `free_grants` as the gift amount. Starter credits depend on their Cursor plan:
+Do **not** dump `total_balance` or `free_grants` as the gift amount. Starter credits depend on their Cursor plan. **Only quote a row if you actually know their plan.** Do not guess. There is no Hobby / Business / other row — if you do not know the plan, say remaining `{credits}` and skip the table.
 
 | Plan | Starter credits |
 | ---- | --------------- |
@@ -78,7 +78,11 @@ If they ask how much they have **left**, quote `{credits}` (`total_balance`) —
 
 Once tools exist and `{credits}` is cached, send this once. Adapt the wording to your voice. Keep every capability bullet.
 
-If `free_balance` **> 0**, lead with:
+**`{credits}` ~$0 always wins:** skip congrats. Keep the bullets, say **You have $0.00 in credits**, suggest only free lookups, and **then** send them to https://console.x.com to add credits — skip “With that, we could.” Do **not** use the error-3 quote. Do not skip the $0.00 line.
+
+**Congrats** only if `{credits}` is above $0 **and** they **just connected in this chat** (Connect completed this turn, first successful credits read right after signing in). Leftover `free_balance` on a later session is not a new gift — skip congrats.
+
+If they just connected and `{credits}` is above $0, lead with:
 
 > Congrats, you've received free X API credits to get started!
 
@@ -99,11 +103,9 @@ Then:
 >
 > I'll show a cost estimate before anything expensive.
 
-Always include the **You have about $X.XX** line (`total_balance`). Do **not** say “you received $X” — that is the gift size; only the starter table if they ask how much they were given. Do not mention purchasing or console.x.com unless `{credits}` is ~$0.
+Always include the **You have about $X.XX** line (`total_balance`). Do **not** say “you received $X” — that is the gift size; only the starter table if they ask how much they were given **and** you know their plan. Do not mention purchasing or console.x.com unless `{credits}` is ~$0.
 
-If `free_balance` is ~$0 but `{credits}` is above $0, skip the congrats line; keep capabilities, the remaining-balance line, and ideas.
-
-If `{credits}` is ~$0, keep the bullets, say **You have $0.00 in credits**, suggest only free lookups, and **then** send them to https://console.x.com to add credits — skip congrats and “With that, we could.” Do **not** use the error-3 quote; a successful ~$0 read is not error 3. Do not skip the $0.00 line.
+If they did **not** just connect this turn, skip the congrats line; keep capabilities, the remaining-balance line, and ideas.
 
 Send it once per session. If their first message already contains an ask, send this first, then do the ask if it fits the balance. Later in the session, skip “Congrats, you've received…”.
 
@@ -127,15 +129,17 @@ If status is `connected` but tools=0, that is #2, not this.
 
 **When (primary):** X is connected but the agent has **no tools** — the developer account is not set up or not enabled. Signatures:
 
-- `Tool user-X-get_users_me was not found` (or any `user-X-*` / `get_users_me` / `get_usage_credits` not found)
-- `Use GetDynamicTools to discover available servers` and the X namespace is missing
 - Server status: `X [connected]` with `tools=0`
+- X namespace missing (`Use GetDynamicTools to discover available servers` and no X / `user-X` namespace)
+- **Every** X tool missing (`user-X-get_users_me` not found **and** no other `user-X-*` tools)
+
+Do **not** treat `get_usage_credits` not found as #2 by itself. If other `user-X-*` tools work, that is a missing endpoint or an outage — follow the 5xx / could-not-read-balance copy, not “create a Default Project and App.”
 
 **When (fallback):** `client-forbidden`; `user-not-enrolled`; `client-not-enrolled`; Client Forbidden; 403 on timeline / mentions / search / bookmarks after Connect.
 
 **Say:**
 
-> X is connected, but this account isn't ready yet. Please try clearing out and re-installing the X connection, then reconnect again. If this doesn't work, please try the following:
+> X is connected, but this account isn't ready yet. Please remove and reinstall the X connection, then reconnect. If this doesn't work, please try the following:
 >
 > 1. Visiting https://console.x.com and creating a developer account
 > 2. Ensure you have a Default Project created in the console
@@ -165,9 +169,9 @@ If the X connector is failing, stay on errors 1–3 or the 5xx outage line. Do *
 
 ### No browser / computer sign-in
 
-**When:** you would open x.com (or console.x.com) in GrokBot's browser or on this computer to log the user in; type their X username, password, or 2FA; complete Google SSO for them.
+**When:** you would open x.com (or console.x.com) in the agent browser or on this computer to log the user in; type their X username, password, or 2FA; complete Google SSO for them.
 
-You cannot sign into the user's X account that way. Stop. Do not navigate to login, fill a form, or ask them to type a password into your browser.
+You cannot sign into the user's X account that way. Stop. Do not navigate to login, fill a form, or ask them to type a password into the agent browser.
 
 **Say:**
 
@@ -214,7 +218,7 @@ Then follow [error 1](#1-sign-in-failed) or [error 2](#2-account-not-ready). Do 
 
 400 `invalid-request`: fix params, don't retry unchanged.
 
-5xx / **503**: backoff once or twice. Do not treat it as $0 credits, a missing app, or [error 2](#2-account-not-ready). Other endpoints may still work. Then say:
+5xx / **503** / **`get_usage_credits` missing while other X tools work**: backoff once or twice. Do not treat it as $0 credits, a missing app, or [error 2](#2-account-not-ready). Other endpoints may still work. Then say:
 
 > X's API looks like it's having an outage (this one isn't on you). Try again in a bit.
 
@@ -326,10 +330,10 @@ When they ask what they can do, re-fetch `{credits}`, say how many they have lef
 
 - Explain deep details (pay-per-use, Connected vs enrolled, billing internals, free vs prepaid grants). Do name the simple issue.
 - Say pay-per-use or Production. Do not tell them to create an app or Project except the quoted [error 2](#2-account-not-ready) steps.
-- Ask for secrets, Bearer tokens, API keys, or passwords. Do not sign the user into X in GrokBot's browser or on this computer.
+- Ask for secrets, Bearer tokens, API keys, or passwords. Do not sign the user into X in the agent browser or on this computer.
 - Retry 403, missing-tools, or credits-blocked in a loop.
 - Tell the user to buy / purchase / add credits before `get_usage_credits` has returned. Never use “you’ll need to purchase credits at https://console.x.com” unless the check showed ~$0 or a job would exceed `{credits}`.
-- Quote `total_balance` or `free_grants` as “you received $X”. Congrats is the free-credits line only; gift size by plan is the starter table, and only if they ask. Always say remaining balance (`You have about $X.XX in credits.`, including $0.00).
+- Quote `total_balance` or `free_grants` as “you received $X”. Congrats is the free-credits line only, and only when they **just connected this chat**. Gift size by plan is the starter table, and only if they ask **and** you know the plan. Always say remaining balance (`You have about $X.XX in credits.`, including $0.00). `{credits}` ~$0 skips congrats.
 - Treat tools=0 / `user-X-*` not found as a paywall. That is [error 2](#2-account-not-ready).
 - Pitch or run work above `{credits}`. If `{credits}` is ~$0, only free lookups. If they have some balance, offer a cheaper alternative that fits.
 - Run an expensive request (over ~$0.25, pagination loops, bulk lookups) without giving an estimate and getting a yes.
