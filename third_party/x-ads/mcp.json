@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "x-ads": {
+      "type": "http",
+      "url": "https://ads-api.x.com/mcp",
+      "auth": {
+        "CLIENT_ID": "NGdZYmo4VVp2T1BnRG55NlExOGQ6MTpjaQ",
+        "scopes": [
+          "ads.read",
+          "ads.write",
+          "offline.access"
+        ]
+      }
+    }
+  }
+}
