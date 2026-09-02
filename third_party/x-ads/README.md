@@ -27,6 +27,7 @@ Or run `/add-plugin x-ads` in chat.
         "scopes": [
           "ads.read",
           "ads.write",
+          "media.write",
           "offline.access"
         ]
       }
@@ -54,7 +55,7 @@ Requests run in your user context against the ads accounts your X account can ac
 
 ## Scopes requested
 
-`ads.read`, `ads.write`, `offline.access`
+`ads.read`, `ads.write`, `media.write`, `offline.access`
 
 ## Docs
 

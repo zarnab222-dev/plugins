@@ -8,6 +8,7 @@
         "scopes": [
           "ads.read",
           "ads.write",
+          "media.write",
           "offline.access"
         ]
       }
