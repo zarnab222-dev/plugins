@@ -342,6 +342,11 @@
       "name": "attio",
       "source": "third_party/attio",
       "description": "Search and update CRM records, lists, notes, and tasks."
+    },
+    {
+      "name": "hunter",
+      "source": "third_party/hunter",
+      "description": "Find and verify emails, discover companies, and save leads."
     }
   ]
 }
