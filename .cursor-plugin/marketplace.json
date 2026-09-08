@@ -337,6 +337,11 @@
       "name": "x-ads",
       "source": "third_party/x-ads",
       "description": "Manage ad campaigns, create ads, track conversions, and pull performance stats."
+    },
+    {
+      "name": "attio",
+      "source": "third_party/attio",
+      "description": "Search and update CRM records, lists, notes, and tasks."
     }
   ]
 }
