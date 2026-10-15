@@ -8,6 +8,7 @@ This is a personal fork of `cursor/plugins` for using and updating Lauren Tan's 
   - [Personal interaction and learning preferences](https://github.com/zarnab222-dev/poneglyph/blob/main/guidance/global-agents.md).
   - [Personal goals and context](https://github.com/zarnab222-dev/poneglyph/blob/main/core.toml).
   - [Cross-project records and references](https://github.com/zarnab222-dev/poneglyph/blob/main/ontology/records.jsonl).
+  - For web development, consult the canonical [mobile web preferences](https://github.com/zarnab222-dev/poneglyph/blob/main/guidance/contexts/mobile-web.md), including mobile Safari background treatment.
   - [Personal design references](https://github.com/zarnab222-dev/design-vocabulary).
 - Keep linked repositories and their contents private. Do not reproduce private context in this public fork, its issues, pull requests, logs, or other public artifacts. If access is unavailable, say so and continue without inventing context.
 - Do not import Poneglyph's orchestration, automatic persistence, or testing restrictions into pstack. Use its private files for personal context, with the precedence above.
